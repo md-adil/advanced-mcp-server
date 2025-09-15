@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "advanced-mcp-server": {
+      "command": "deno",
+      "args": ["run", "-A", "${workspaceFolder}/src/server.ts"],
+      "env": {
+        "DEBUG": "mcp:*"
+      }
+    }
+  }
+}

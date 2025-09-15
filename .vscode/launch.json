@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Advanced MCP Server",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "deno",
+      "program": "${workspaceFolder}/src/server.ts",
+      "runtimeArgs": ["run", "--inspect-wait"],
+      "env": {
+        "DENO_FUTURE": "1"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/tests/server.test.ts",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": ["test", "--inspect-wait"],
+      "env": {
+        "DENO_FUTURE": "1"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}
