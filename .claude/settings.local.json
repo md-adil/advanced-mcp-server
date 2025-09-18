@@ -5,7 +5,9 @@
       "Bash(deno fmt:*)",
       "Bash(deno check:*)",
       "Bash(deno run:*)",
-      "Bash(deno task:*)"
+      "Bash(deno task:*)",
+      "Bash(mkdir:*)",
+      "Bash(timeout 5s deno run:*)"
     ],
     "deny": [],
     "ask": []
