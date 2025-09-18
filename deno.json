@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --watch --allow-all src/server.ts",
+    "dev": "deno run --watch --check --allow-all src/server.ts",
     "inspect": "npx @modelcontextprotocol/inspector deno run --allow-all src/server.ts",
     "start": "deno run --allow-all src/server.ts",
     "build": "deno compile --allow-all --no-check --output $HOME/.local/bin/advanced-mcp-server src/server.ts",

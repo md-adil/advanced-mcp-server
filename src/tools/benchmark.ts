@@ -285,8 +285,8 @@ export class BenchmarkHandler {
       try {
         const response = await fetch(url, {
           method,
-          headers: args.headers,
-          body: args.body,
+          headers: new Headers(args.headers),
+          body: args.body!,
         });
 
         const text = await response.text();
@@ -587,13 +587,12 @@ export class BenchmarkHandler {
     let i = low - 1;
 
     for (let j = low; j < high; j++) {
-      if (arr[j] < pivot) {
+      if (arr[j]! < pivot!) {
         i++;
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+        [(arr as any)[i], (arr as any)[j]] = [arr[j], arr[i]];
       }
     }
-
-    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+    [(arr as any)[i + 1], (arr as any)[high]] = [arr[high], arr[i + 1]];
     return i + 1;
   }
 
@@ -613,10 +612,10 @@ export class BenchmarkHandler {
       j = 0;
 
     while (i < left.length && j < right.length) {
-      if (left[i] <= right[j]) {
-        result.push(left[i++]);
+      if (left[i]! <= right[j]!) {
+        result.push(left[i++]!);
       } else {
-        result.push(right[j++]);
+        result.push(right[j++]!);
       }
     }
 
@@ -627,8 +626,8 @@ export class BenchmarkHandler {
     const n = arr.length;
     for (let i = 0; i < n - 1; i++) {
       for (let j = 0; j < n - i - 1; j++) {
-        if (arr[j] > arr[j + 1]) {
-          [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+        if (arr[j]! > arr[j + 1]!) {
+          [(arr as any)[j], (arr as any)[j + 1]] = [arr[j + 1], arr[j]];
         }
       }
     }

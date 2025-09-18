@@ -21,7 +21,11 @@ export const filesystemTools = [
       properties: {
         path: { type: "string", description: "File path to write" },
         content: { type: "string", description: "Content to write" },
-        mode: { type: "string", enum: ["create", "append", "overwrite"], default: "create" },
+        mode: {
+          type: "string",
+          enum: ["create", "append", "overwrite"],
+          default: "create",
+        },
       },
       required: ["path", "content"],
     },
@@ -33,8 +37,16 @@ export const filesystemTools = [
       type: "object",
       properties: {
         path: { type: "string", description: "Directory path", default: "." },
-        recursive: { type: "boolean", description: "List recursively", default: false },
-        include_hidden: { type: "boolean", description: "Include hidden files", default: false },
+        recursive: {
+          type: "boolean",
+          description: "List recursively",
+          default: false,
+        },
+        include_hidden: {
+          type: "boolean",
+          description: "Include hidden files",
+          default: false,
+        },
       },
     },
   },
@@ -45,7 +57,11 @@ export const filesystemTools = [
       type: "object",
       properties: {
         path: { type: "string", description: "Directory path to create" },
-        recursive: { type: "boolean", description: "Create parent directories", default: true },
+        recursive: {
+          type: "boolean",
+          description: "Create parent directories",
+          default: true,
+        },
       },
       required: ["path"],
     },
@@ -57,7 +73,11 @@ export const filesystemTools = [
       type: "object",
       properties: {
         path: { type: "string", description: "Path to delete" },
-        recursive: { type: "boolean", description: "Delete recursively for directories", default: false },
+        recursive: {
+          type: "boolean",
+          description: "Delete recursively for directories",
+          default: false,
+        },
       },
       required: ["path"],
     },
@@ -70,7 +90,11 @@ export const filesystemTools = [
       properties: {
         source: { type: "string", description: "Source path" },
         destination: { type: "string", description: "Destination path" },
-        overwrite: { type: "boolean", description: "Overwrite if exists", default: false },
+        overwrite: {
+          type: "boolean",
+          description: "Overwrite if exists",
+          default: false,
+        },
       },
       required: ["source", "destination"],
     },
@@ -105,8 +129,16 @@ export const filesystemTools = [
       type: "object",
       properties: {
         path: { type: "string", description: "Path to watch" },
-        recursive: { type: "boolean", description: "Watch recursively", default: false },
-        duration: { type: "number", description: "Watch duration in seconds", default: 60 },
+        recursive: {
+          type: "boolean",
+          description: "Watch recursively",
+          default: false,
+        },
+        duration: {
+          type: "number",
+          description: "Watch duration in seconds",
+          default: 60,
+        },
       },
       required: ["path"],
     },
@@ -134,7 +166,11 @@ export class FilesystemHandler {
     return { success: true, message: `File written to ${args.path}` };
   }
 
-  async listDirectory(args: { path?: string; recursive?: boolean; include_hidden?: boolean }): Promise<{ entries: FileInfo[]; count: number }> {
+  async listDirectory(args: {
+    path?: string;
+    recursive?: boolean;
+    include_hidden?: boolean;
+  }): Promise<{ entries: FileInfo[]; count: number }> {
     const entries: FileInfo[] = [];
     const path = args.path || ".";
 
@@ -146,19 +182,21 @@ export class FilesystemHandler {
         name: entry.name,
         type: entry.isDirectory ? "directory" : "file",
         size: info.size ?? 0,
-        modified: info.mtime?.toISOString(),
+        modified: info.mtime?.toISOString()!,
       });
 
       if (args.recursive && entry.isDirectory) {
         const subEntries = await this.listDirectory({
           path: `${path}/${entry.name}`,
           recursive: true,
-          include_hidden: args.include_hidden,
+          include_hidden: args.include_hidden!,
         });
-        entries.push(...subEntries.entries.map((e) => ({
-          ...e,
-          name: `${entry.name}/${e.name}`,
-        })));
+        entries.push(
+          ...subEntries.entries.map((e) => ({
+            ...e,
+            name: `${entry.name}/${e.name}`,
+          }))
+        );
       }
     }
 
@@ -166,16 +204,20 @@ export class FilesystemHandler {
   }
 
   async createDirectory(args: { path: string; recursive?: boolean }) {
-    await Deno.mkdir(args.path, { recursive: args.recursive });
+    await Deno.mkdir(args.path, { recursive: args.recursive! });
     return { success: true, message: `Directory created: ${args.path}` };
   }
 
   async delete(args: { path: string; recursive?: boolean }) {
-    await Deno.remove(args.path, { recursive: args.recursive });
+    await Deno.remove(args.path, { recursive: args.recursive! });
     return { success: true, message: `Deleted: ${args.path}` };
   }
 
-  async copy(args: { source: string; destination: string; overwrite?: boolean }) {
+  async copy(args: {
+    source: string;
+    destination: string;
+    overwrite?: boolean;
+  }) {
     if (!args.overwrite) {
       try {
         await Deno.stat(args.destination);
@@ -188,12 +230,18 @@ export class FilesystemHandler {
     }
 
     await Deno.copyFile(args.source, args.destination);
-    return { success: true, message: `Copied ${args.source} to ${args.destination}` };
+    return {
+      success: true,
+      message: `Copied ${args.source} to ${args.destination}`,
+    };
   }
 
   async move(args: { source: string; destination: string }) {
     await Deno.rename(args.source, args.destination);
-    return { success: true, message: `Moved ${args.source} to ${args.destination}` };
+    return {
+      success: true,
+      message: `Moved ${args.source} to ${args.destination}`,
+    };
   }
 
   async stat(args: { path: string }) {
@@ -213,11 +261,12 @@ export class FilesystemHandler {
   }
 
   async watch(args: { path: string; recursive?: boolean; duration?: number }) {
-    const changes: Array<{ kind: string; paths: string[]; timestamp: string }> = [];
-    const watcher = Deno.watchFs(args.path, { recursive: args.recursive });
+    const changes: Array<{ kind: string; paths: string[]; timestamp: string }> =
+      [];
+    const watcher = Deno.watchFs(args.path, { recursive: args.recursive! });
 
     const timeout = setTimeout(() => {
-      watcher.return();
+      watcher.return?.();
     }, (args.duration ?? 60) * 1000);
 
     try {

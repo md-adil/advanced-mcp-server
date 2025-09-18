@@ -1,5 +1,7 @@
 #!/usr/bin/env -S deno run --allow-all
 
+// deno-lint-ignore-file no-case-declarations
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -18,12 +20,7 @@ import { SystemMetrics } from "./types.ts";
 import { FilesystemHandler, filesystemTools } from "./tools/filesystem.ts";
 import { GitHandler, gitTools } from "./tools/git.ts";
 import { DockerHandler, dockerTools } from "./tools/docker.ts";
-import { CryptoHandler, cryptoTools } from "./tools/crypto.ts";
 import { WebSocketHandler, websocketTools } from "./tools/websocket.ts";
-import {
-  CodeAnalysisHandler,
-  codeAnalysisTools,
-} from "./tools/codeanalysis.ts";
 import { BenchmarkHandler, benchmarkTools } from "./tools/benchmark.ts";
 
 export class AdvancedMCPServer {
@@ -31,15 +28,13 @@ export class AdvancedMCPServer {
   private logger: Logger;
   private cache: MemoryCache;
   private metrics: SystemMetrics[] = [];
-  private metricsInterval?: number;
+  private metricsInterval?: number | undefined;
 
   // Tool handlers
   private fsHandler: FilesystemHandler;
   private gitHandler: GitHandler;
   private dockerHandler: DockerHandler;
-  private cryptoHandler: CryptoHandler;
   private wsHandler: WebSocketHandler;
-  private codeHandler: CodeAnalysisHandler;
   private benchmarkHandler: BenchmarkHandler;
 
   constructor() {
@@ -50,9 +45,7 @@ export class AdvancedMCPServer {
     this.fsHandler = new FilesystemHandler();
     this.gitHandler = new GitHandler();
     this.dockerHandler = new DockerHandler();
-    this.cryptoHandler = new CryptoHandler();
     this.wsHandler = new WebSocketHandler();
-    this.codeHandler = new CodeAnalysisHandler();
     this.benchmarkHandler = new BenchmarkHandler();
 
     this.server = new Server(
@@ -158,9 +151,7 @@ export class AdvancedMCPServer {
           ...filesystemTools,
           ...gitTools,
           ...dockerTools,
-          ...cryptoTools,
           ...websocketTools,
-          ...codeAnalysisTools,
           ...benchmarkTools,
           // System-level tools only
           {
@@ -398,17 +389,10 @@ export class AdvancedMCPServer {
                 count: dockerTools.length,
                 tools: dockerTools.map((t) => t.name),
               },
-              crypto: {
-                count: cryptoTools.length,
-                tools: cryptoTools.map((t) => t.name),
-              },
+
               websocket: {
                 count: websocketTools.length,
                 tools: websocketTools.map((t) => t.name),
-              },
-              codeAnalysis: {
-                count: codeAnalysisTools.length,
-                tools: codeAnalysisTools.map((t) => t.name),
               },
               benchmark: {
                 count: benchmarkTools.length,
@@ -446,18 +430,6 @@ export class AdvancedMCPServer {
       return {
         prompts: [
           {
-            name: "code_review",
-            description: "Comprehensive code review prompt",
-            arguments: [
-              {
-                name: "language",
-                description: "Programming language",
-                required: true,
-              },
-              { name: "code", description: "Code to review", required: true },
-            ],
-          },
-          {
             name: "debug_analysis",
             description: "Debug and analyze errors",
             arguments: [
@@ -489,22 +461,6 @@ export class AdvancedMCPServer {
               },
             ],
           },
-          {
-            name: "security_audit",
-            description: "Security audit checklist",
-            arguments: [
-              {
-                name: "application_type",
-                description: "Type of application",
-                required: true,
-              },
-              {
-                name: "tech_stack",
-                description: "Technology stack used",
-                required: false,
-              },
-            ],
-          },
         ],
       };
     });
@@ -521,7 +477,7 @@ export class AdvancedMCPServer {
               role: "user",
               content: {
                 type: "text",
-                text: `Please review this ${args?.language || "code"} for:
+                text: `Please review this ${args?.["language"] || "code"} for:
 1. Code quality and best practices
 2. Performance considerations
 3. Security vulnerabilities
@@ -530,8 +486,8 @@ export class AdvancedMCPServer {
 6. Documentation completeness
 
 Code to review:
-\`\`\`${args?.language || "text"}
-${args?.code || ""}
+\`\`\`${args?.["language"] || "text"}
+${args?.["code"] || ""}
 \`\`\`
 
 Provide detailed feedback with specific suggestions for improvement.`,
@@ -548,9 +504,9 @@ Provide detailed feedback with specific suggestions for improvement.`,
                 type: "text",
                 text: `Please analyze this error and provide debugging guidance:
 
-Error: ${args?.error_message || ""}
+Error: ${args?.["error_message"] || ""}
 
-${args?.context ? `Context: ${args.context}` : ""}
+${args?.["context"] ? `Context: ${args["context"]}` : ""}
 
 Please provide:
 1. Likely causes of this error
@@ -569,10 +525,12 @@ Please provide:
               content: {
                 type: "text",
                 text: `Please provide performance optimization suggestions for ${
-                  args?.code_type || "this application"
+                  args?.["code_type"] || "this application"
                 }.
 
-${args?.current_metrics ? `Current metrics: ${args.current_metrics}` : ""}
+${
+  args?.["current_metrics"] ? `Current metrics: ${args["current_metrics"]}` : ""
+}
 
 Focus on:
 1. Algorithmic improvements
@@ -593,10 +551,10 @@ Focus on:
               content: {
                 type: "text",
                 text: `Please provide a security audit checklist for a ${
-                  args?.application_type || "web application"
+                  args?.["application_type"] || "web application"
                 }.
 
-${args?.tech_stack ? `Technology stack: ${args.tech_stack}` : ""}
+${args?.["tech_stack"] ? `Technology stack: ${args["tech_stack"]}` : ""}
 
 Include:
 1. Authentication and authorization
@@ -701,20 +659,6 @@ Include:
       }
     }
 
-    // Crypto operations
-    if (name.startsWith("crypto_")) {
-      switch (name) {
-        case "crypto_get_price":
-          return await this.cryptoHandler.getPrice(args);
-        case "crypto_portfolio":
-          return await this.cryptoHandler.calculatePortfolio(args);
-        case "crypto_generate_wallet":
-          return await this.cryptoHandler.generateWallet(args);
-        case "crypto_market_overview":
-          return await this.cryptoHandler.marketOverview(args);
-      }
-    }
-
     // WebSocket operations
     if (name.startsWith("ws_")) {
       switch (name) {
@@ -730,38 +674,6 @@ Include:
           return await this.wsHandler.listConnections();
         case "ws_ping":
           return await this.wsHandler.ping(args);
-      }
-    }
-
-    // Code analysis operations
-    if (
-      name.startsWith("analyze_") ||
-      name.startsWith("extract_") ||
-      name.startsWith("count_") ||
-      name.startsWith("detect_") ||
-      name.startsWith("calculate_") ||
-      name.startsWith("format_") ||
-      name.startsWith("minify_")
-    ) {
-      switch (name) {
-        case "analyze_javascript":
-          return await this.codeHandler.analyzeJavaScript(args);
-        case "extract_functions":
-          return await this.codeHandler.extractFunctions(
-            args.code,
-            args.language
-          );
-        case "count_lines_of_code":
-          return await this.codeHandler.countLinesOfCode(args);
-        case "detect_code_smells":
-          return await this.codeHandler.detectCodeSmells(args);
-        case "extract_imports":
-          return await this.codeHandler.extractImports(
-            args.code,
-            args.language
-          );
-        case "calculate_complexity":
-          return await this.codeHandler.calculateComplexity(args);
       }
     }
 
@@ -834,8 +746,8 @@ Include:
     try {
       const response = await fetch(args.url, {
         method: args.method || "GET",
-        headers: args.headers,
-        body: args.body,
+        headers: new Headers(args.headers),
+        body: args.body as any,
         signal: controller.signal,
       });
 
@@ -862,7 +774,7 @@ Include:
   }) {
     const command = new Deno.Command(args.command, {
       args: args.args || [],
-      cwd: args.cwd,
+      cwd: args.cwd!,
       stdout: "piped",
       stderr: "piped",
     });

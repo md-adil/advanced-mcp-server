@@ -17,7 +17,11 @@ export const gitTools = [
     inputSchema: {
       type: "object",
       properties: {
-        files: { type: "array", items: { type: "string" }, description: "Files to add" },
+        files: {
+          type: "array",
+          items: { type: "string" },
+          description: "Files to add",
+        },
         all: { type: "boolean", description: "Add all files", default: false },
       },
     },
@@ -30,7 +34,11 @@ export const gitTools = [
       properties: {
         message: { type: "string", description: "Commit message" },
         author: { type: "string", description: "Author name and email" },
-        amend: { type: "boolean", description: "Amend previous commit", default: false },
+        amend: {
+          type: "boolean",
+          description: "Amend previous commit",
+          default: false,
+        },
       },
       required: ["message"],
     },
@@ -41,7 +49,11 @@ export const gitTools = [
     inputSchema: {
       type: "object",
       properties: {
-        remote: { type: "string", description: "Remote name", default: "origin" },
+        remote: {
+          type: "string",
+          description: "Remote name",
+          default: "origin",
+        },
         branch: { type: "string", description: "Branch name" },
         force: { type: "boolean", description: "Force push", default: false },
       },
@@ -53,9 +65,17 @@ export const gitTools = [
     inputSchema: {
       type: "object",
       properties: {
-        remote: { type: "string", description: "Remote name", default: "origin" },
+        remote: {
+          type: "string",
+          description: "Remote name",
+          default: "origin",
+        },
         branch: { type: "string", description: "Branch name" },
-        rebase: { type: "boolean", description: "Use rebase instead of merge", default: false },
+        rebase: {
+          type: "boolean",
+          description: "Use rebase instead of merge",
+          default: false,
+        },
       },
     },
   },
@@ -65,7 +85,11 @@ export const gitTools = [
     inputSchema: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["list", "create", "delete", "switch"], default: "list" },
+        action: {
+          type: "string",
+          enum: ["list", "create", "delete", "switch"],
+          default: "list",
+        },
         name: { type: "string", description: "Branch name" },
         force: { type: "boolean", description: "Force action", default: false },
       },
@@ -77,8 +101,16 @@ export const gitTools = [
     inputSchema: {
       type: "object",
       properties: {
-        limit: { type: "number", description: "Number of commits to show", default: 10 },
-        oneline: { type: "boolean", description: "Show one line per commit", default: false },
+        limit: {
+          type: "number",
+          description: "Number of commits to show",
+          default: 10,
+        },
+        oneline: {
+          type: "boolean",
+          description: "Show one line per commit",
+          default: false,
+        },
         author: { type: "string", description: "Filter by author" },
         since: { type: "string", description: "Show commits since date" },
       },
@@ -90,9 +122,16 @@ export const gitTools = [
     inputSchema: {
       type: "object",
       properties: {
-        staged: { type: "boolean", description: "Show staged changes", default: false },
+        staged: {
+          type: "boolean",
+          description: "Show staged changes",
+          default: false,
+        },
         file: { type: "string", description: "Specific file to diff" },
-        commit: { type: "string", description: "Compare against specific commit" },
+        commit: {
+          type: "string",
+          description: "Compare against specific commit",
+        },
       },
     },
   },
@@ -102,7 +141,11 @@ export const gitTools = [
     inputSchema: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["push", "pop", "list", "apply", "drop"], default: "push" },
+        action: {
+          type: "string",
+          enum: ["push", "pop", "list", "apply", "drop"],
+          default: "push",
+        },
         message: { type: "string", description: "Stash message" },
         index: { type: "number", description: "Stash index" },
       },
@@ -125,10 +168,14 @@ export const gitTools = [
 ];
 
 export class GitHandler {
-  private async executeCommand(command: string, args: string[], cwd?: string): Promise<CommandResult> {
+  private async executeCommand(
+    command: string,
+    args: string[],
+    cwd?: string
+  ): Promise<CommandResult> {
     const cmd = new Deno.Command(command, {
       args,
-      cwd,
+      cwd: cwd!,
       stdout: "piped",
       stderr: "piped",
     });
@@ -144,15 +191,27 @@ export class GitHandler {
   async status(args: { path?: string }): Promise<GitStatus> {
     const cwd = args.path || ".";
 
-    const statusResult = await this.executeCommand("git", ["status", "--porcelain"], cwd);
-    const branchResult = await this.executeCommand("git", ["branch", "--show-current"], cwd);
-    const aheadBehindResult = await this.executeCommand("git", ["rev-list", "--count", "--left-right", "@{upstream}...HEAD"], cwd);
+    const statusResult = await this.executeCommand(
+      "git",
+      ["status", "--porcelain"],
+      cwd
+    );
+    const branchResult = await this.executeCommand(
+      "git",
+      ["branch", "--show-current"],
+      cwd
+    );
+    const aheadBehindResult = await this.executeCommand(
+      "git",
+      ["rev-list", "--count", "--left-right", "@{upstream}...HEAD"],
+      cwd
+    );
 
     const staged: string[] = [];
     const unstaged: string[] = [];
     const untracked: string[] = [];
 
-    statusResult.stdout.split("\n").forEach(line => {
+    statusResult.stdout.split("\n").forEach((line) => {
       if (!line.trim()) return;
       const status = line.substring(0, 2);
       const file = line.substring(3);
@@ -162,7 +221,10 @@ export class GitHandler {
       if (status === "??") untracked.push(file);
     });
 
-    const [behind, ahead] = aheadBehindResult.stdout.trim().split("\t").map(Number);
+    const [behind, ahead] = aheadBehindResult.stdout
+      .trim()
+      .split("\t")
+      .map(Number);
 
     return {
       branch: branchResult.stdout.trim(),
@@ -182,7 +244,10 @@ export class GitHandler {
     }
 
     const result = await this.executeCommand("git", gitArgs);
-    return { success: result.exitCode === 0, message: result.stderr || "Files added successfully" };
+    return {
+      success: result.exitCode === 0,
+      message: result.stderr || "Files added successfully",
+    };
   }
 
   async commit(args: { message: string; author?: string; amend?: boolean }) {
@@ -194,7 +259,7 @@ export class GitHandler {
     return {
       success: result.exitCode === 0,
       message: result.stderr || result.stdout || "Commit created successfully",
-      hash: result.stdout.match(/\[.* ([a-f0-9]{7})\]/)?.[1]
+      hash: result.stdout.match(/\[.* ([a-f0-9]{7})\]/)?.[1],
     };
   }
 
@@ -205,7 +270,10 @@ export class GitHandler {
     if (args.branch) gitArgs.push(args.branch);
 
     const result = await this.executeCommand("git", gitArgs);
-    return { success: result.exitCode === 0, message: result.stderr || "Push completed successfully" };
+    return {
+      success: result.exitCode === 0,
+      message: result.stderr || "Push completed successfully",
+    };
   }
 
   async pull(args: { remote?: string; branch?: string; rebase?: boolean }) {
@@ -215,7 +283,10 @@ export class GitHandler {
     if (args.branch) gitArgs.push(args.branch);
 
     const result = await this.executeCommand("git", gitArgs);
-    return { success: result.exitCode === 0, message: result.stderr || result.stdout || "Pull completed successfully" };
+    return {
+      success: result.exitCode === 0,
+      message: result.stderr || result.stdout || "Pull completed successfully",
+    };
   }
 
   async branch(args: { action?: string; name?: string; force?: boolean }) {
@@ -226,15 +297,18 @@ export class GitHandler {
         gitArgs = ["branch", "-a"];
         break;
       case "create":
-        if (!args.name) throw new Error("Branch name required for create action");
+        if (!args.name)
+          throw new Error("Branch name required for create action");
         gitArgs = ["branch", args.name];
         break;
       case "delete":
-        if (!args.name) throw new Error("Branch name required for delete action");
+        if (!args.name)
+          throw new Error("Branch name required for delete action");
         gitArgs = ["branch", args.force ? "-D" : "-d", args.name];
         break;
       case "switch":
-        if (!args.name) throw new Error("Branch name required for switch action");
+        if (!args.name)
+          throw new Error("Branch name required for switch action");
         gitArgs = ["checkout", args.name];
         break;
       default:
@@ -244,12 +318,20 @@ export class GitHandler {
     const result = await this.executeCommand("git", gitArgs);
     return {
       success: result.exitCode === 0,
-      branches: result.stdout.split("\n").filter(Boolean).map(b => b.trim()),
-      message: result.stderr || "Branch operation completed"
+      branches: result.stdout
+        .split("\n")
+        .filter(Boolean)
+        .map((b) => b.trim()),
+      message: result.stderr || "Branch operation completed",
     };
   }
 
-  async log(args: { limit?: number; oneline?: boolean; author?: string; since?: string }) {
+  async log(args: {
+    limit?: number;
+    oneline?: boolean;
+    author?: string;
+    since?: string;
+  }) {
     const gitArgs = ["log", `--max-count=${args.limit || 10}`];
     if (args.oneline) gitArgs.push("--oneline");
     if (args.author) gitArgs.push(`--author=${args.author}`);
@@ -259,7 +341,7 @@ export class GitHandler {
     return {
       success: result.exitCode === 0,
       log: result.stdout,
-      commits: result.stdout.split("\n").filter(Boolean).length
+      commits: result.stdout.split("\n").filter(Boolean).length,
     };
   }
 
@@ -273,7 +355,7 @@ export class GitHandler {
     return {
       success: result.exitCode === 0,
       diff: result.stdout,
-      hasChanges: result.stdout.length > 0
+      hasChanges: result.stdout.length > 0,
     };
   }
 
@@ -305,11 +387,16 @@ export class GitHandler {
     return {
       success: result.exitCode === 0,
       output: result.stdout,
-      message: result.stderr || "Stash operation completed"
+      message: result.stderr || "Stash operation completed",
     };
   }
 
-  async clone(args: { url: string; destination?: string; branch?: string; depth?: number }) {
+  async clone(args: {
+    url: string;
+    destination?: string;
+    branch?: string;
+    depth?: number;
+  }) {
     const gitArgs = ["clone"];
     if (args.branch) gitArgs.push("-b", args.branch);
     if (args.depth) gitArgs.push("--depth", args.depth.toString());
@@ -319,7 +406,7 @@ export class GitHandler {
     const result = await this.executeCommand("git", gitArgs);
     return {
       success: result.exitCode === 0,
-      message: result.stderr || "Repository cloned successfully"
+      message: result.stderr || "Repository cloned successfully",
     };
   }
 }

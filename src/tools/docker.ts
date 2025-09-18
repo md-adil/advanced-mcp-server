@@ -7,8 +7,16 @@ export const dockerTools = [
     inputSchema: {
       type: "object",
       properties: {
-        all: { type: "boolean", description: "Show all containers (including stopped)", default: false },
-        format: { type: "string", description: "Output format", default: "table" },
+        all: {
+          type: "boolean",
+          description: "Show all containers (including stopped)",
+          default: false,
+        },
+        format: {
+          type: "string",
+          description: "Output format",
+          default: "table",
+        },
       },
     },
   },
@@ -20,11 +28,27 @@ export const dockerTools = [
       properties: {
         image: { type: "string", description: "Docker image name" },
         name: { type: "string", description: "Container name" },
-        ports: { type: "array", items: { type: "string" }, description: "Port mappings (e.g., '8080:80')" },
-        volumes: { type: "array", items: { type: "string" }, description: "Volume mappings" },
+        ports: {
+          type: "array",
+          items: { type: "string" },
+          description: "Port mappings (e.g., '8080:80')",
+        },
+        volumes: {
+          type: "array",
+          items: { type: "string" },
+          description: "Volume mappings",
+        },
         environment: { type: "object", description: "Environment variables" },
-        detach: { type: "boolean", description: "Run in background", default: true },
-        remove: { type: "boolean", description: "Remove container when it exits", default: false },
+        detach: {
+          type: "boolean",
+          description: "Run in background",
+          default: true,
+        },
+        remove: {
+          type: "boolean",
+          description: "Remove container when it exits",
+          default: false,
+        },
       },
       required: ["image"],
     },
@@ -36,7 +60,11 @@ export const dockerTools = [
       type: "object",
       properties: {
         container: { type: "string", description: "Container ID or name" },
-        timeout: { type: "number", description: "Timeout in seconds", default: 10 },
+        timeout: {
+          type: "number",
+          description: "Timeout in seconds",
+          default: 10,
+        },
       },
       required: ["container"],
     },
@@ -59,7 +87,11 @@ export const dockerTools = [
       type: "object",
       properties: {
         container: { type: "string", description: "Container ID or name" },
-        force: { type: "boolean", description: "Force remove running container", default: false },
+        force: {
+          type: "boolean",
+          description: "Force remove running container",
+          default: false,
+        },
       },
       required: ["container"],
     },
@@ -71,8 +103,16 @@ export const dockerTools = [
       type: "object",
       properties: {
         container: { type: "string", description: "Container ID or name" },
-        tail: { type: "number", description: "Number of lines from end", default: 100 },
-        follow: { type: "boolean", description: "Follow log output", default: false },
+        tail: {
+          type: "number",
+          description: "Number of lines from end",
+          default: 100,
+        },
+        follow: {
+          type: "boolean",
+          description: "Follow log output",
+          default: false,
+        },
         since: { type: "string", description: "Show logs since timestamp" },
       },
       required: ["container"],
@@ -85,9 +125,21 @@ export const dockerTools = [
       type: "object",
       properties: {
         container: { type: "string", description: "Container ID or name" },
-        command: { type: "array", items: { type: "string" }, description: "Command to execute" },
-        interactive: { type: "boolean", description: "Keep STDIN open", default: false },
-        tty: { type: "boolean", description: "Allocate a pseudo-TTY", default: false },
+        command: {
+          type: "array",
+          items: { type: "string" },
+          description: "Command to execute",
+        },
+        interactive: {
+          type: "boolean",
+          description: "Keep STDIN open",
+          default: false,
+        },
+        tty: {
+          type: "boolean",
+          description: "Allocate a pseudo-TTY",
+          default: false,
+        },
       },
       required: ["container", "command"],
     },
@@ -98,7 +150,11 @@ export const dockerTools = [
     inputSchema: {
       type: "object",
       properties: {
-        all: { type: "boolean", description: "Show all images (including intermediates)", default: false },
+        all: {
+          type: "boolean",
+          description: "Show all images (including intermediates)",
+          default: false,
+        },
         filter: { type: "string", description: "Filter images" },
       },
     },
@@ -109,11 +165,19 @@ export const dockerTools = [
     inputSchema: {
       type: "object",
       properties: {
-        path: { type: "string", description: "Build context path", default: "." },
+        path: {
+          type: "string",
+          description: "Build context path",
+          default: ".",
+        },
         tag: { type: "string", description: "Image tag" },
         dockerfile: { type: "string", description: "Dockerfile path" },
         buildArgs: { type: "object", description: "Build arguments" },
-        noCache: { type: "boolean", description: "Do not use cache", default: false },
+        noCache: {
+          type: "boolean",
+          description: "Do not use cache",
+          default: false,
+        },
       },
     },
   },
@@ -124,7 +188,10 @@ export const dockerTools = [
       type: "object",
       properties: {
         image: { type: "string", description: "Image name and tag" },
-        platform: { type: "string", description: "Platform (e.g., linux/amd64)" },
+        platform: {
+          type: "string",
+          description: "Platform (e.g., linux/amd64)",
+        },
       },
       required: ["image"],
     },
@@ -135,11 +202,27 @@ export const dockerTools = [
     inputSchema: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["up", "down", "build", "logs", "ps"], description: "Compose action" },
+        action: {
+          type: "string",
+          enum: ["up", "down", "build", "logs", "ps"],
+          description: "Compose action",
+        },
         file: { type: "string", description: "Compose file path" },
-        services: { type: "array", items: { type: "string" }, description: "Specific services" },
-        detach: { type: "boolean", description: "Detached mode", default: true },
-        build: { type: "boolean", description: "Build images before starting", default: false },
+        services: {
+          type: "array",
+          items: { type: "string" },
+          description: "Specific services",
+        },
+        detach: {
+          type: "boolean",
+          description: "Detached mode",
+          default: true,
+        },
+        build: {
+          type: "boolean",
+          description: "Build images before starting",
+          default: false,
+        },
       },
       required: ["action"],
     },
@@ -147,7 +230,10 @@ export const dockerTools = [
 ];
 
 export class DockerHandler {
-  private async executeCommand(command: string, args: string[]): Promise<CommandResult> {
+  private async executeCommand(
+    command: string,
+    args: string[]
+  ): Promise<CommandResult> {
     const cmd = new Deno.Command(command, {
       args,
       stdout: "piped",
@@ -162,7 +248,10 @@ export class DockerHandler {
     };
   }
 
-  async listContainers(args: { all?: boolean; format?: string }): Promise<DockerContainer[]> {
+  async listContainers(args: {
+    all?: boolean;
+    format?: string;
+  }): Promise<DockerContainer[]> {
     const dockerArgs = ["ps"];
     if (args.all) dockerArgs.push("-a");
     dockerArgs.push("--format", "json");
@@ -172,9 +261,10 @@ export class DockerHandler {
       throw new Error(`Docker command failed: ${result.stderr}`);
     }
 
-    return result.stdout.split("\n")
-      .filter(line => line.trim())
-      .map(line => {
+    return result.stdout
+      .split("\n")
+      .filter((line) => line.trim())
+      .map((line) => {
         const container = JSON.parse(line);
         return {
           id: container.ID,
@@ -203,13 +293,13 @@ export class DockerHandler {
     if (args.name) dockerArgs.push("--name", args.name);
 
     if (args.ports) {
-      args.ports.forEach(port => {
+      args.ports.forEach((port) => {
         dockerArgs.push("-p", port);
       });
     }
 
     if (args.volumes) {
-      args.volumes.forEach(volume => {
+      args.volumes.forEach((volume) => {
         dockerArgs.push("-v", volume);
       });
     }
@@ -243,7 +333,10 @@ export class DockerHandler {
   }
 
   async start(args: { container: string }) {
-    const result = await this.executeCommand("docker", ["start", args.container]);
+    const result = await this.executeCommand("docker", [
+      "start",
+      args.container,
+    ]);
     return {
       success: result.exitCode === 0,
       message: result.stderr || `Container ${args.container} started`,
@@ -262,7 +355,12 @@ export class DockerHandler {
     };
   }
 
-  async logs(args: { container: string; tail?: number; follow?: boolean; since?: string }) {
+  async logs(args: {
+    container: string;
+    tail?: number;
+    follow?: boolean;
+    since?: string;
+  }) {
     const dockerArgs = ["logs"];
     if (args.tail) dockerArgs.push("--tail", args.tail.toString());
     if (args.follow) dockerArgs.push("-f");
@@ -277,7 +375,12 @@ export class DockerHandler {
     };
   }
 
-  async exec(args: { container: string; command: string[]; interactive?: boolean; tty?: boolean }) {
+  async exec(args: {
+    container: string;
+    command: string[];
+    interactive?: boolean;
+    tty?: boolean;
+  }) {
     const dockerArgs = ["exec"];
     if (args.interactive) dockerArgs.push("-i");
     if (args.tty) dockerArgs.push("-t");
@@ -303,9 +406,10 @@ export class DockerHandler {
       throw new Error(`Docker command failed: ${result.stderr}`);
     }
 
-    return result.stdout.split("\n")
-      .filter(line => line.trim())
-      .map(line => JSON.parse(line));
+    return result.stdout
+      .split("\n")
+      .filter((line) => line.trim())
+      .map((line) => JSON.parse(line));
   }
 
   async build(args: {
@@ -369,7 +473,10 @@ export class DockerHandler {
       composeArgs.push(...args.services);
     }
 
-    const result = await this.executeCommand(composeArgs[0], composeArgs.slice(1));
+    const result = await this.executeCommand(
+      composeArgs[0]!,
+      composeArgs.slice(1)
+    );
     return {
       success: result.exitCode === 0,
       output: result.stdout,
