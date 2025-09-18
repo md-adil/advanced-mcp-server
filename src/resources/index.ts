@@ -4,19 +4,10 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Logger } from "../utils/logger.ts";
-import { MemoryCache } from "../utils/cache.ts";
 import { MetricsCollector } from "../tools/metrics/index.ts";
-// Tool imports for summary
-import { filesystemTools } from "../tools/filesystem/index.ts";
-import { gitTools } from "../tools/git/index.ts";
-import { dockerTools } from "../tools/docker/index.ts";
-import { websocketTools } from "../tools/websocket/index.ts";
-import { benchmarkTools } from "../tools/benchmark/index.ts";
-import { elasticTools } from "../tools/elastic/index.ts";
-import { cacheTools } from "../tools/cache/index.ts";
-import { metricsTools } from "../tools/metrics/index.ts";
-import { httpTools } from "../tools/http/index.ts";
-import { commandTools } from "../tools/command/index.ts";
+import { getToolsSummary } from "../tools/registry.ts";
+import { cache } from "../tools/cache/handler.ts";
+import { Server } from "@modelcontextprotocol/sdk/server";
 
 // Resource definitions
 export const resources = [
@@ -54,18 +45,17 @@ export const resources = [
 
 // Resource handlers
 export function setupResourceHandlers(
-  server: any,
+  server: Server,
   logger: Logger,
-  cache: MemoryCache,
   metricsCollector: MetricsCollector
 ) {
   // List resources
-  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  server.setRequestHandler(ListResourcesRequestSchema, () => {
     return { resources };
   });
 
   // Read resources
-  server.setRequestHandler(ReadResourceRequestSchema, async (request: any) => {
+  server.setRequestHandler(ReadResourceRequestSchema, (request) => {
     const { uri } = request.params;
 
     switch (uri) {
@@ -74,6 +64,7 @@ export function setupResourceHandlers(
           contents: [
             {
               uri,
+              type: "text",
               mimeType: "application/json",
               text: JSON.stringify(logger.getRecentLogs(50), null, 2),
             },
@@ -137,48 +128,7 @@ export function setupResourceHandlers(
         };
 
       case "tools://summary":
-        const toolsSummary = {
-          filesystem: {
-            count: filesystemTools.length,
-            tools: filesystemTools.map((t: { name: string }) => t.name),
-          },
-          git: {
-            count: gitTools.length,
-            tools: gitTools.map((t: { name: string }) => t.name),
-          },
-          docker: {
-            count: dockerTools.length,
-            tools: dockerTools.map((t: { name: string }) => t.name),
-          },
-          websocket: {
-            count: websocketTools.length,
-            tools: websocketTools.map((t: { name: string }) => t.name),
-          },
-          benchmark: {
-            count: benchmarkTools.length,
-            tools: benchmarkTools.map((t: { name: string }) => t.name),
-          },
-          elastic: {
-            count: elasticTools.length,
-            tools: elasticTools.map((t: { name: string }) => t.name),
-          },
-          cache: {
-            count: cacheTools.length,
-            tools: cacheTools.map((t: { name: string }) => t.name),
-          },
-          metrics: {
-            count: metricsTools.length,
-            tools: metricsTools.map((t: { name: string }) => t.name),
-          },
-          http: {
-            count: httpTools.length,
-            tools: httpTools.map((t: { name: string }) => t.name),
-          },
-          command: {
-            count: commandTools.length,
-            tools: commandTools.map((t: { name: string }) => t.name),
-          },
-        };
+        const toolsSummary = getToolsSummary();
         return {
           contents: [
             {

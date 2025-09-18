@@ -1,4 +1,5 @@
 import { CommandResult, GitStatus } from "../../types.ts";
+import { ToolResult } from "../../types/tool-response.ts";
 
 // Utility function to execute commands
 async function executeCommand(
@@ -22,7 +23,7 @@ async function executeCommand(
 }
 
 // Individual tool functions
-async function status(args: { path?: string }): Promise<GitStatus> {
+async function status(args: { path?: string }): Promise<ToolResult> {
   const cwd = args.path || ".";
 
   const statusResult = await executeCommand(
@@ -67,7 +68,7 @@ async function status(args: { path?: string }): Promise<GitStatus> {
   };
 }
 
-async function add(args: { files?: string[]; all?: boolean }) {
+async function add(args: { files?: string[]; all?: boolean }): Promise<ToolResult> {
   const gitArgs = ["add"];
   if (args.all) {
     gitArgs.push(".");
@@ -88,7 +89,7 @@ async function commit(args: {
   message: string;
   author?: string;
   amend?: boolean;
-}) {
+}): Promise<ToolResult> {
   const gitArgs = ["commit", "-m", args.message];
   if (args.amend) gitArgs.push("--amend");
   if (args.author) gitArgs.push("--author", args.author);
@@ -105,7 +106,7 @@ async function push(args: {
   remote?: string;
   branch?: string;
   force?: boolean;
-}) {
+}): Promise<ToolResult> {
   const gitArgs = ["push"];
   if (args.force) gitArgs.push("--force");
   if (args.remote) gitArgs.push(args.remote);
@@ -122,7 +123,7 @@ async function pull(args: {
   remote?: string;
   branch?: string;
   rebase?: boolean;
-}) {
+}): Promise<ToolResult> {
   const gitArgs = ["pull"];
   if (args.rebase) gitArgs.push("--rebase");
   if (args.remote) gitArgs.push(args.remote);
@@ -139,7 +140,7 @@ async function branch(args: {
   action?: string;
   name?: string;
   force?: boolean;
-}) {
+}): Promise<ToolResult> {
   let gitArgs: string[] = [];
 
   switch (args.action) {
@@ -178,7 +179,7 @@ async function log(args: {
   oneline?: boolean;
   author?: string;
   since?: string;
-}) {
+}): Promise<ToolResult> {
   const gitArgs = ["log", `--max-count=${args.limit || 10}`];
   if (args.oneline) gitArgs.push("--oneline");
   if (args.author) gitArgs.push(`--author=${args.author}`);
@@ -196,7 +197,7 @@ async function diff(args: {
   staged?: boolean;
   file?: string;
   commit?: string;
-}) {
+}): Promise<ToolResult> {
   const gitArgs = ["diff"];
   if (args.staged) gitArgs.push("--staged");
   if (args.commit) gitArgs.push(args.commit);
@@ -214,7 +215,7 @@ async function stash(args: {
   action?: string;
   message?: string;
   index?: number;
-}) {
+}): Promise<ToolResult> {
   let gitArgs: string[] = ["stash"];
 
   switch (args.action) {
@@ -251,7 +252,7 @@ async function clone(args: {
   destination?: string;
   branch?: string;
   depth?: number;
-}) {
+}): Promise<ToolResult> {
   const gitArgs = ["clone"];
   if (args.branch) gitArgs.push("-b", args.branch);
   if (args.depth) gitArgs.push("--depth", args.depth.toString());
@@ -269,7 +270,7 @@ async function clone(args: {
 export async function executeGitTool(
   name: string,
   args: Record<string, unknown>
-) {
+): Promise<ToolResult> {
   switch (name) {
     case "git_status":
       return await status(args as { path?: string });

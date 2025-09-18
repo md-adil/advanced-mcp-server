@@ -1,4 +1,5 @@
 import { CommandResult, DockerContainer } from "../../types.ts";
+import { ToolResult } from "../../types/tool-response.ts";
 
 // Utility function to execute commands
 async function executeCommand(
@@ -23,7 +24,7 @@ async function executeCommand(
 async function listContainers(args: {
   all?: boolean;
   format?: string;
-}): Promise<DockerContainer[]> {
+}): Promise<ToolResult> {
   const dockerArgs = ["ps"];
   if (args.all) dockerArgs.push("-a");
   dockerArgs.push("--format", "json");
@@ -33,7 +34,7 @@ async function listContainers(args: {
     throw new Error(`Docker command failed: ${result.stderr}`);
   }
 
-  return result.stdout
+  const containers = result.stdout
     .split("\n")
     .filter((line) => line.trim())
     .map((line) => {
@@ -47,6 +48,8 @@ async function listContainers(args: {
         created: container.CreatedAt,
       };
     });
+
+  return { containers, count: containers.length };
 }
 
 async function run(args: {
@@ -57,7 +60,7 @@ async function run(args: {
   environment?: Record<string, string>;
   detach?: boolean;
   remove?: boolean;
-}) {
+}): Promise<ToolResult> {
   const dockerArgs = ["run"];
 
   if (args.detach) dockerArgs.push("-d");
@@ -92,7 +95,7 @@ async function run(args: {
   };
 }
 
-async function stop(args: { container: string; timeout?: number }) {
+async function stop(args: { container: string; timeout?: number }): Promise<ToolResult> {
   const dockerArgs = ["stop"];
   if (args.timeout) dockerArgs.push("-t", args.timeout.toString());
   dockerArgs.push(args.container);
@@ -104,7 +107,7 @@ async function stop(args: { container: string; timeout?: number }) {
   };
 }
 
-async function start(args: { container: string }) {
+async function start(args: { container: string }): Promise<ToolResult> {
   const result = await executeCommand("docker", [
     "start",
     args.container,
@@ -115,7 +118,7 @@ async function start(args: { container: string }) {
   };
 }
 
-async function remove(args: { container: string; force?: boolean }) {
+async function remove(args: { container: string; force?: boolean }): Promise<ToolResult> {
   const dockerArgs = ["rm"];
   if (args.force) dockerArgs.push("-f");
   dockerArgs.push(args.container);
@@ -132,7 +135,7 @@ async function logs(args: {
   tail?: number;
   follow?: boolean;
   since?: string;
-}) {
+}): Promise<ToolResult> {
   const dockerArgs = ["logs"];
   if (args.tail) dockerArgs.push("--tail", args.tail.toString());
   if (args.follow) dockerArgs.push("-f");
@@ -152,7 +155,7 @@ async function exec(args: {
   command: string[];
   interactive?: boolean;
   tty?: boolean;
-}) {
+}): Promise<ToolResult> {
   const dockerArgs = ["exec"];
   if (args.interactive) dockerArgs.push("-i");
   if (args.tty) dockerArgs.push("-t");
@@ -168,7 +171,7 @@ async function exec(args: {
   };
 }
 
-async function images(args: { all?: boolean; filter?: string }) {
+async function images(args: { all?: boolean; filter?: string }): Promise<ToolResult> {
   const dockerArgs = ["images", "--format", "json"];
   if (args.all) dockerArgs.push("-a");
   if (args.filter) dockerArgs.push("--filter", args.filter);
@@ -178,10 +181,12 @@ async function images(args: { all?: boolean; filter?: string }) {
     throw new Error(`Docker command failed: ${result.stderr}`);
   }
 
-  return result.stdout
+  const images = result.stdout
     .split("\n")
     .filter((line) => line.trim())
     .map((line) => JSON.parse(line));
+
+  return { images, count: images.length };
 }
 
 async function build(args: {
@@ -190,7 +195,7 @@ async function build(args: {
   dockerfile?: string;
   buildArgs?: Record<string, string>;
   noCache?: boolean;
-}) {
+}): Promise<ToolResult> {
   const dockerArgs = ["build"];
   if (args.tag) dockerArgs.push("-t", args.tag);
   if (args.dockerfile) dockerArgs.push("-f", args.dockerfile);
@@ -212,7 +217,7 @@ async function build(args: {
   };
 }
 
-async function pull(args: { image: string; platform?: string }) {
+async function pull(args: { image: string; platform?: string }): Promise<ToolResult> {
   const dockerArgs = ["pull"];
   if (args.platform) dockerArgs.push("--platform", args.platform);
   dockerArgs.push(args.image);
@@ -230,7 +235,7 @@ async function compose(args: {
   services?: string[];
   detach?: boolean;
   build?: boolean;
-}) {
+}): Promise<ToolResult> {
   const composeArgs = ["docker-compose"];
   if (args.file) composeArgs.push("-f", args.file);
 
@@ -257,7 +262,7 @@ async function compose(args: {
 }
 
 // Main execution function - handles all docker tool cases
-export async function executeDockerTool(name: string, args: Record<string, unknown>) {
+export async function executeDockerTool(name: string, args: Record<string, unknown>): Promise<ToolResult> {
   switch (name) {
     case "docker_list_containers":
       return await listContainers(args as { all?: boolean; format?: string });

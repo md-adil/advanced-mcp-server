@@ -1,3 +1,5 @@
+import { ToolResult } from "../../types/tool-response.ts";
+
 interface ElasticResponse {
   [key: string]: unknown;
 }
@@ -122,7 +124,7 @@ function safeGet(obj: unknown, path: string[]): unknown {
 async function getDashboards(config: ElasticConfig, args: {
   kibana_host?: string;
   index?: string;
-}) {
+}): Promise<ToolResult> {
   const kibanaHost = args.kibana_host || config.kibana_host;
 
   try {
@@ -160,7 +162,7 @@ async function getMetrics(config: ElasticConfig, args: {
   service_name?: string;
   time_range?: string;
   environment?: string;
-}) {
+}): Promise<ToolResult> {
   const host = args.host || config.host;
   const timeRange = args.time_range || "15m";
 
@@ -249,7 +251,7 @@ async function getLogs(config: ElasticConfig, args: {
   log_level?: string;
   time_range?: string;
   size?: number;
-}) {
+}): Promise<ToolResult> {
   const host = args.host || config.host;
   const index = args.index || "logs-*";
   const timeRange = args.time_range || "15m";
@@ -317,7 +319,7 @@ async function getTraces(config: ElasticConfig, args: {
   transaction_name?: string;
   time_range?: string;
   size?: number;
-}) {
+}): Promise<ToolResult> {
   const host = args.host || config.host;
   const timeRange = args.time_range || "15m";
   const size = args.size || 50;
@@ -395,7 +397,7 @@ async function getErrors(config: ElasticConfig, args: {
   error_type?: string;
   time_range?: string;
   size?: number;
-}) {
+}): Promise<ToolResult> {
   const host = args.host || config.host;
   const timeRange = args.time_range || "15m";
   const size = args.size || 50;
@@ -464,7 +466,7 @@ async function getServices(config: ElasticConfig, args: {
   host?: string;
   environment?: string;
   time_range?: string;
-}) {
+}): Promise<ToolResult> {
   const host = args.host || config.host;
   const timeRange = args.time_range || "15m";
 
@@ -545,7 +547,7 @@ async function searchLogs(config: ElasticConfig, args: {
   query: string;
   time_range?: string;
   size?: number;
-}) {
+}): Promise<ToolResult> {
   const host = args.host || config.host;
   const index = args.index || "logs-*";
   const timeRange = args.time_range || "15m";
@@ -597,7 +599,7 @@ async function searchLogs(config: ElasticConfig, args: {
   }
 }
 
-async function healthCheck(config: ElasticConfig, args: { host?: string }) {
+async function healthCheck(config: ElasticConfig, args: { host?: string }): Promise<ToolResult> {
   const host = args.host || config.host;
 
   try {
@@ -632,7 +634,7 @@ async function healthCheck(config: ElasticConfig, args: { host?: string }) {
 }
 
 // Main execution function - handles all elastic tool cases
-export async function executeElasticTool(name: string, args: Record<string, unknown>) {
+export async function executeElasticTool(name: string, args: Record<string, unknown>): Promise<ToolResult> {
   const config = createElasticConfig();
 
   switch (name) {

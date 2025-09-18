@@ -14,6 +14,7 @@
   "imports": {
     "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1.18.0",
     "@std/assert": "jsr:@std/assert@^1.0.0",
+    "@std/encoding": "jsr:@std/encoding@^1.0.10",
     "@std/testing": "jsr:@std/testing@^1.0.0"
   },
   "compilerOptions": {

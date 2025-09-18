@@ -8,38 +8,17 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 import { Logger } from "./utils/logger.ts";
-import { MemoryCache } from "./utils/cache.ts";
 
-import {
-  executeFilesystemTool,
-  filesystemTools,
-} from "./tools/filesystem/index.ts";
-import { executeGitTool, gitTools } from "./tools/git/index.ts";
-import { executeDockerTool, dockerTools } from "./tools/docker/index.ts";
-import {
-  executeWebSocketTool,
-  websocketTools,
-} from "./tools/websocket/index.ts";
-import {
-  executeBenchmarkTool,
-  benchmarkTools,
-} from "./tools/benchmark/index.ts";
-import { executeElasticTool, elasticTools } from "./tools/elastic/index.ts";
-import { executeCacheTool, cacheTools } from "./tools/cache/index.ts";
-import {
-  executeMetricsTool,
-  MetricsCollector,
-  metricsTools,
-} from "./tools/metrics/index.ts";
-import { executeHttpTool, httpTools } from "./tools/http/index.ts";
-import { executeCommandTool, commandTools } from "./tools/command/index.ts";
+import { getAllTools, executeTool } from "./tools/registry.ts";
+import { executeMetricsTool, MetricsCollector } from "./tools/metrics/index.ts";
 import { setupResourceHandlers } from "./resources/index.ts";
 import { setupPromptHandlers } from "./prompts/index.ts";
+import { formatToolTextOutput } from "./tools/formatter.ts";
+import { wrapAsTextResponse } from "./types/tool-response.ts";
 
 export class AdvancedMCPServer {
   private server: Server;
   private logger: Logger;
-  private cache: MemoryCache;
   private metricsCollector: MetricsCollector;
 
   // Legacy handlers for websocket cleanup (will be removed after full refactor)
@@ -47,7 +26,6 @@ export class AdvancedMCPServer {
 
   constructor() {
     this.logger = new Logger();
-    this.cache = new MemoryCache();
     this.metricsCollector = new MetricsCollector(this.logger);
 
     // Initialize only the websocket handler for cleanup (will be lazy-loaded)
@@ -72,12 +50,7 @@ export class AdvancedMCPServer {
     this.setupHandlers();
 
     // Setup modular handlers
-    setupResourceHandlers(
-      this.server,
-      this.logger,
-      this.cache,
-      this.metricsCollector
-    );
+    setupResourceHandlers(this.server, this.logger, this.metricsCollector);
     setupPromptHandlers(this.server);
     this.metricsCollector.startCollection();
   }
@@ -87,18 +60,7 @@ export class AdvancedMCPServer {
     this.server.setRequestHandler(ListToolsRequestSchema, () => {
       this.logger.info("Listed available tools");
       return {
-        tools: [
-          ...filesystemTools,
-          ...gitTools,
-          ...dockerTools,
-          ...websocketTools,
-          ...benchmarkTools,
-          ...elasticTools,
-          ...cacheTools,
-          ...metricsTools,
-          ...httpTools,
-          ...commandTools,
-        ],
+        tools: getAllTools(),
       };
     });
 
@@ -108,11 +70,21 @@ export class AdvancedMCPServer {
       this.logger.info(`Executing tool: ${name}`, { args });
 
       try {
-        const result = await this.executeTool(name, args);
+        if (name.startsWith("metrics_")) {
+          return formatToolTextOutput(
+            await executeMetricsTool(this.metricsCollector, name, args!)
+          );
+        }
+        const result = await executeTool(name, args!);
         this.logger.info(`Tool ${name} executed successfully`);
-        return {
-          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-        };
+
+        // Check if tool already returned content in correct format
+        if (result && typeof result === "object" && (result as any).content) {
+          return result;
+        }
+
+        // Otherwise wrap in default text format
+        return wrapAsTextResponse(result);
       } catch (error) {
         this.logger.error(`Tool ${name} failed`, {
           error: (error as Error).message,
@@ -132,60 +104,6 @@ export class AdvancedMCPServer {
     // Resources and prompts are handled by modular handlers
   }
 
-  private async executeTool(name: string, args: any): Promise<any> {
-    // Filesystem operations
-    if (name.startsWith("fs_")) {
-      return await executeFilesystemTool(name, args);
-    }
-
-    // Git operations
-    if (name.startsWith("git_")) {
-      return await executeGitTool(name, args);
-    }
-
-    // Docker operations
-    if (name.startsWith("docker_")) {
-      return await executeDockerTool(name, args);
-    }
-
-    // WebSocket operations
-    if (name.startsWith("ws_")) {
-      return await executeWebSocketTool(name, args);
-    }
-
-    // Benchmark operations
-    if (name.startsWith("benchmark_")) {
-      return await executeBenchmarkTool(name, args);
-    }
-
-    // Elastic operations
-    if (name.startsWith("elastic_")) {
-      return await executeElasticTool(name, args);
-    }
-
-    // Cache operations
-    if (name.startsWith("cache_")) {
-      return executeCacheTool(this.cache, name, args);
-    }
-
-    // Metrics operations
-    if (name.startsWith("metrics_")) {
-      return await executeMetricsTool(this.metricsCollector, name, args);
-    }
-
-    // HTTP operations
-    if (name === "http_request") {
-      return await executeHttpTool(name, args);
-    }
-
-    // Command operations
-    if (name === "exec_command") {
-      return await executeCommandTool(name, args);
-    }
-
-    throw new Error(`Unknown tool: ${name}`);
-  }
-
   async start() {
     (globalThis as any).startTime = Date.now();
     const transport = new StdioServerTransport();
@@ -197,7 +115,9 @@ export class AdvancedMCPServer {
     this.metricsCollector.stopCollection();
     // Initialize websocket handler for cleanup if needed
     if (!this.wsHandler) {
-      const { WebSocketHandler } = await import("./tools/websocket.ts");
+      const { WebSocketHandler } = await import(
+        "./tools/websocket/websocket.ts"
+      );
       this.wsHandler = new WebSocketHandler();
     }
     await this.wsHandler.cleanup();

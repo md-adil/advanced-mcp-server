@@ -1,4 +1,4 @@
-import { FileInfo } from "../types.ts";
+import { FileInfo } from "./filesystem/filesystem.ts";
 
 export const filesystemTools = [
   {

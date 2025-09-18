@@ -1,10 +1,12 @@
+import { ToolResult } from "../../types/tool-response.ts";
+
 async function httpRequest(args: {
   url: string;
   method?: string;
   headers?: Record<string, string>;
   body?: string;
   timeout?: number;
-}) {
+}): Promise<ToolResult> {
   const controller = new AbortController();
   const timeoutId = setTimeout(
     () => controller.abort(),
@@ -35,7 +37,7 @@ async function httpRequest(args: {
 }
 
 // Functional interface for tool execution
-export function executeHttpTool(name: string, args: Record<string, unknown>) {
+export function executeHttpTool(name: string, args: Record<string, unknown>): Promise<ToolResult> {
   switch (name) {
     case "http_request":
       return httpRequest(args as {

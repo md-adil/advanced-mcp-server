@@ -1,4 +1,4 @@
-import { BenchmarkResult } from "../types.ts";
+import { BenchmarkResult } from "../../types.ts";
 
 export const benchmarkTools = [
   {

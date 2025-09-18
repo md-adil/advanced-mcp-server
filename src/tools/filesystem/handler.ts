@@ -1,7 +1,8 @@
 import { FileInfo } from "../../types.ts";
+import { ToolResult } from "../../types/tool-response.ts";
 
 // Individual tool functions
-async function readFile(args: { path: string; encoding?: string }) {
+async function readFile(args: { path: string; encoding?: string }): Promise<ToolResult> {
   const content = await Deno.readTextFile(args.path);
   if (args.encoding === "base64") {
     return { content: btoa(content), encoding: "base64" };
@@ -9,7 +10,7 @@ async function readFile(args: { path: string; encoding?: string }) {
   return { content, encoding: "utf8" };
 }
 
-async function writeFile(args: { path: string; content: string; mode?: string }) {
+async function writeFile(args: { path: string; content: string; mode?: string }): Promise<ToolResult> {
   const options: Deno.WriteFileOptions = {};
   if (args.mode === "append") {
     options.append = true;
@@ -25,7 +26,7 @@ async function listDirectory(args: {
   path?: string;
   recursive?: boolean;
   include_hidden?: boolean;
-}): Promise<{ entries: FileInfo[]; count: number }> {
+}): Promise<ToolResult> {
   const entries: FileInfo[] = [];
   const path = args.path || ".";
 
@@ -58,12 +59,12 @@ async function listDirectory(args: {
   return { entries, count: entries.length };
 }
 
-async function createDirectory(args: { path: string; recursive?: boolean }) {
+async function createDirectory(args: { path: string; recursive?: boolean }): Promise<ToolResult> {
   await Deno.mkdir(args.path, { recursive: args.recursive || false });
   return { success: true, message: `Directory created: ${args.path}` };
 }
 
-async function deleteFile(args: { path: string; recursive?: boolean }) {
+async function deleteFile(args: { path: string; recursive?: boolean }): Promise<ToolResult> {
   await Deno.remove(args.path, { recursive: args.recursive || false });
   return { success: true, message: `Deleted: ${args.path}` };
 }
@@ -72,7 +73,7 @@ async function copyFile(args: {
   source: string;
   destination: string;
   overwrite?: boolean;
-}) {
+}): Promise<ToolResult> {
   if (!args.overwrite) {
     try {
       await Deno.stat(args.destination);
@@ -91,7 +92,7 @@ async function copyFile(args: {
   };
 }
 
-async function moveFile(args: { source: string; destination: string }) {
+async function moveFile(args: { source: string; destination: string }): Promise<ToolResult> {
   await Deno.rename(args.source, args.destination);
   return {
     success: true,
@@ -99,7 +100,7 @@ async function moveFile(args: { source: string; destination: string }) {
   };
 }
 
-async function statFile(args: { path: string }) {
+async function statFile(args: { path: string }): Promise<ToolResult> {
   const info = await Deno.stat(args.path);
   return {
     size: info.size,
@@ -115,7 +116,7 @@ async function statFile(args: { path: string }) {
   };
 }
 
-async function watchFile(args: { path: string; recursive?: boolean; duration?: number }) {
+async function watchFile(args: { path: string; recursive?: boolean; duration?: number }): Promise<ToolResult> {
   const changes: Array<{ kind: string; paths: string[]; timestamp: string }> = [];
   const watcher = Deno.watchFs(args.path, { recursive: args.recursive || false });
 
@@ -139,7 +140,7 @@ async function watchFile(args: { path: string; recursive?: boolean; duration?: n
 }
 
 // Main execution function - handles all filesystem tool cases
-export async function executeFilesystemTool(name: string, args: Record<string, unknown>) {
+export async function executeFilesystemTool(name: string, args: Record<string, unknown>): Promise<ToolResult> {
   switch (name) {
     case "fs_read_file":
       return await readFile(args as { path: string; encoding?: string });

@@ -6,8 +6,16 @@ export const websocketTools = [
       type: "object",
       properties: {
         url: { type: "string", description: "WebSocket URL" },
-        protocols: { type: "array", items: { type: "string" }, description: "WebSocket protocols" },
-        timeout: { type: "number", description: "Connection timeout in ms", default: 10000 },
+        protocols: {
+          type: "array",
+          items: { type: "string" },
+          description: "WebSocket protocols",
+        },
+        timeout: {
+          type: "number",
+          description: "Connection timeout in ms",
+          default: 10000,
+        },
       },
       required: ["url"],
     },
@@ -32,8 +40,16 @@ export const websocketTools = [
       type: "object",
       properties: {
         connectionId: { type: "string", description: "Connection ID" },
-        duration: { type: "number", description: "Listen duration in seconds", default: 30 },
-        maxMessages: { type: "number", description: "Maximum messages to collect", default: 100 },
+        duration: {
+          type: "number",
+          description: "Listen duration in seconds",
+          default: 30,
+        },
+        maxMessages: {
+          type: "number",
+          description: "Maximum messages to collect",
+          default: 100,
+        },
       },
       required: ["connectionId"],
     },
@@ -89,7 +105,11 @@ export class WebSocketHandler {
   async connect(args: { url: string; protocols?: string[]; timeout?: number }) {
     const connectionId = `ws_${this.nextId++}`;
 
-    return new Promise<{ connectionId: string; success: boolean; message: string }>((resolve, reject) => {
+    return new Promise<{
+      connectionId: string;
+      success: boolean;
+      message: string;
+    }>((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error("WebSocket connection timeout"));
       }, args.timeout || 10000);
@@ -173,7 +193,11 @@ export class WebSocketHandler {
     }
   }
 
-  async listen(args: { connectionId: string; duration?: number; maxMessages?: number }) {
+  async listen(args: {
+    connectionId: string;
+    duration?: number;
+    maxMessages?: number;
+  }) {
     const connection = this.connections.get(args.connectionId);
     if (!connection) {
       throw new Error(`Connection ${args.connectionId} not found`);
@@ -184,7 +208,10 @@ export class WebSocketHandler {
     const maxMessages = args.maxMessages || 100;
     const duration = (args.duration || 30) * 1000;
 
-    return new Promise<{ messages: typeof connection.messages; duration: number }>((resolve) => {
+    return new Promise<{
+      messages: typeof connection.messages;
+      duration: number;
+    }>((resolve) => {
       const checkMessages = () => {
         const elapsed = Date.now() - startTime;
         const newMessages = connection.messages.slice(initialCount);
@@ -218,12 +245,14 @@ export class WebSocketHandler {
         message: `Connection ${args.connectionId} closed`,
       };
     } catch (error) {
-      throw new Error(`Failed to close connection: ${(error as Error).message}`);
+      throw new Error(
+        `Failed to close connection: ${(error as Error).message}`
+      );
     }
   }
 
   async listConnections() {
-    const connections = Array.from(this.connections.values()).map(conn => ({
+    const connections = Array.from(this.connections.values()).map((conn) => ({
       id: conn.id,
       url: conn.url,
       connected: conn.connected,
@@ -236,7 +265,7 @@ export class WebSocketHandler {
     return {
       connections,
       totalConnections: connections.length,
-      activeConnections: connections.filter(c => c.connected).length,
+      activeConnections: connections.filter((c) => c.connected).length,
     };
   }
 
@@ -273,11 +302,16 @@ export class WebSocketHandler {
 
   private getReadyStateText(readyState: number): string {
     switch (readyState) {
-      case WebSocket.CONNECTING: return "CONNECTING";
-      case WebSocket.OPEN: return "OPEN";
-      case WebSocket.CLOSING: return "CLOSING";
-      case WebSocket.CLOSED: return "CLOSED";
-      default: return "UNKNOWN";
+      case WebSocket.CONNECTING:
+        return "CONNECTING";
+      case WebSocket.OPEN:
+        return "OPEN";
+      case WebSocket.CLOSING:
+        return "CLOSING";
+      case WebSocket.CLOSED:
+        return "CLOSED";
+      default:
+        return "UNKNOWN";
     }
   }
 

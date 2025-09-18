@@ -1,9 +1,11 @@
+import { ToolResult } from "../../types/tool-response.ts";
+
 async function execCommand(args: {
   command: string;
   args?: string[];
   cwd?: string;
   timeout?: number;
-}) {
+}): Promise<ToolResult> {
   const commandOptions: any = {
     args: args.args || [],
     stdout: "piped",
@@ -38,7 +40,7 @@ async function execCommand(args: {
 }
 
 // Functional interface for tool execution
-export function executeCommandTool(name: string, args: Record<string, unknown>) {
+export function executeCommandTool(name: string, args: Record<string, unknown>): Promise<ToolResult> {
   switch (name) {
     case "exec_command":
       return execCommand(args as {
