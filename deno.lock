@@ -9,7 +9,8 @@
     "jsr:@std/internal@^1.0.10": "1.0.10",
     "jsr:@std/path@^1.1.1": "1.1.2",
     "jsr:@std/testing@1": "1.0.15",
-    "npm:@modelcontextprotocol/sdk@^1.18.0": "1.18.0_express@5.1.0_zod@3.25.76"
+    "npm:@modelcontextprotocol/sdk@^1.18.0": "1.18.0_express@5.1.0_zod@3.25.76",
+    "npm:zod@3.25.76": "3.25.76"
   },
   "jsr": {
     "@std/assert@1.0.14": {
@@ -566,7 +567,8 @@
       "jsr:@std/assert@1",
       "jsr:@std/encoding@^1.0.10",
       "jsr:@std/testing@1",
-      "npm:@modelcontextprotocol/sdk@^1.18.0"
+      "npm:@modelcontextprotocol/sdk@^1.18.0",
+      "npm:zod@3.25.76"
     ]
   }
 }
