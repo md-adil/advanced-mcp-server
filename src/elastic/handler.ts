@@ -1,5 +1,6 @@
 import { createElasticConfig, ElasticConfig } from "./config.ts";
 import { getAuthHeaders } from "./credentials.ts";
+import axios, { type AxiosRequestConfig } from "axios";
 
 // Types and interfaces
 interface ElasticResponse {
@@ -8,16 +9,18 @@ interface ElasticResponse {
 
 type Result = Record<string, unknown>;
 
-async function makeRequest(
+export async function makeRequest(
   url: string,
   config: ElasticConfig,
   options: {
     method?: string;
     headers?: Record<string, string>;
-    body?: string;
+    body?: unknown;
   } = {}
 ): Promise<ElasticResponse> {
-  const requestOptions: RequestInit = {
+  const requestOptions: AxiosRequestConfig = {
+    baseURL: config.host,
+    url,
     method: options.method || "GET",
     headers: {
       ...getAuthHeaders(config),
@@ -26,16 +29,11 @@ async function makeRequest(
   };
 
   if (options.body) {
-    requestOptions.body = options.body;
+    requestOptions.data = options.body;
   }
-
-  const response = await fetch(url, requestOptions);
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  return (await response.json()) as ElasticResponse;
+  const { data } = await axios(requestOptions);
+  console.log({ data });
+  return data;
 }
 
 // Time range utilities
@@ -132,11 +130,11 @@ async function executeElasticRequest(
   method: string = "POST",
   body?: unknown
 ): Promise<ElasticResponse> {
-  const requestOptions: { method: string; body?: string } = { method };
+  const requestOptions: { method: string; body?: unknown } = { method };
   if (body) {
-    requestOptions.body = JSON.stringify(body);
+    requestOptions.body = body;
   }
-  return await makeRequest(`${config.host}${endpoint}`, config, requestOptions);
+  return await makeRequest(`${endpoint}`, config, requestOptions);
 }
 
 // Individual tool functions
@@ -147,11 +145,11 @@ export async function getDashboards(): Promise<Result> {
     config,
     {
       method: "POST",
-      body: JSON.stringify({
+      body: {
         type: "dashboard",
         search_fields: ["title"],
         fields: ["title", "description"],
-      }),
+      },
     }
   );
 

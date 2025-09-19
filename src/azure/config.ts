@@ -16,15 +16,3 @@ export function createAzureConfig(): AzureConfig {
     pat,
   };
 }
-
-export function validateAzureConfig(): void {
-  try {
-    createAzureConfig();
-  } catch (error) {
-    throw new Error(
-      `Azure DevOps configuration error: ${
-        error instanceof Error ? error.message : String(error)
-      }`
-    );
-  }
-}

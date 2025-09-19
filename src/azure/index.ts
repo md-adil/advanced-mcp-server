@@ -1,15 +1,10 @@
-import {
-  McpServer,
-  ResourceTemplate,
-} from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import z from "zod";
 import { wrapAsTextResponse } from "../utils/tools.ts";
-import { validateAzureConfig } from "./config.ts";
 import {
   getProjects,
   getRepositories,
   getUsers,
-  getUserProfile,
   getWorkItems,
   getTasks,
   getUserStories,
@@ -25,30 +20,12 @@ export function azureModule(server: McpServer) {
       description: "Check Azure DevOps configuration and environment variables",
       inputSchema: {},
     },
-    async () => {
-      try {
-        validateAzureConfig();
-        return wrapAsTextResponse({
-          status: "success",
-          message: "Azure DevOps configuration is valid",
-          timestamp: new Date().toISOString(),
-        });
-      } catch (error) {
-        return wrapAsTextResponse({
-          status: "error",
-          error: String(error),
-          help: {
-            required_env_vars: [
-              "AZURE_DEVOPS_ORGANIZATION - Azure DevOps organization URI (e.g., https://dev.azure.com/MyOrg/)",
-            ],
-            optional_env_vars: [
-              "AZURE_DEVOPS_PROJECT - Default project name",
-              "AZURE_DEVOPS_PAT - Personal Access Token (if required)",
-            ],
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
+    () => {
+      return wrapAsTextResponse({
+        status: "success",
+        message: "Azure DevOps configuration is valid",
+        timestamp: new Date().toISOString(),
+      });
     }
   );
 
@@ -68,7 +45,7 @@ export function azureModule(server: McpServer) {
     {
       description: "Get list of Azure DevOps repositories",
       inputSchema: {
-        project: z.string().optional().describe("Project name or ID"),
+        project: z.string().describe("Project name or ID"),
       },
     },
     async (args) => {
@@ -153,7 +130,7 @@ export function azureModule(server: McpServer) {
     {
       description: "Get list of Azure DevOps pipelines",
       inputSchema: {
-        project: z.string().optional().describe("Project name or ID"),
+        project: z.string().describe("Project name or ID"),
       },
     },
     async (args) => {
@@ -166,8 +143,8 @@ export function azureModule(server: McpServer) {
     {
       description: "Get list of Azure DevOps repository branches",
       inputSchema: {
-        project: z.string().optional().describe("Project name or ID"),
-        repository: z.string().optional().describe("Repository name or ID"),
+        project: z.string().describe("Project name or ID"),
+        repository: z.string().describe("Repository name or ID"),
       },
     },
     async (args) => {
@@ -180,8 +157,8 @@ export function azureModule(server: McpServer) {
     {
       description: "Get list of Azure DevOps pull requests",
       inputSchema: {
-        project: z.string().optional().describe("Project name or ID"),
-        repository: z.string().optional().describe("Repository name or ID"),
+        project: z.string().describe("Project name or ID"),
+        repository: z.string().describe("Repository name or ID"),
         status: z
           .string()
           .optional()
@@ -278,40 +255,6 @@ export function azureModule(server: McpServer) {
             uri: href,
             mimeType: "application/json",
             text: JSON.stringify(workItems, null, 2),
-          },
-        ],
-      };
-    }
-  );
-
-  // Register dynamic resource template for user profiles
-  server.registerResource(
-    "azure-user-profile-template",
-    new ResourceTemplate("azure://users/{email}/profile", {
-      list: undefined,
-    }),
-    {
-      name: "Azure DevOps User Profile",
-      description: "Individual user profile from Azure DevOps by email",
-      mimeType: "application/json",
-    },
-    async (request) => {
-      const { href } = request;
-      // Extract email from the URI pattern
-      const emailMatch = href.match(/azure:\/\/users\/(.+)\/profile/);
-      if (!emailMatch?.[1]) {
-        throw new Error(
-          "Invalid URI format. Expected azure://users/{email}/profile"
-        );
-      }
-      const email = decodeURIComponent(emailMatch[1]);
-      const userProfile = await getUserProfile({ email });
-      return {
-        contents: [
-          {
-            uri: href,
-            mimeType: "application/json",
-            text: JSON.stringify(userProfile, null, 2),
           },
         ],
       };

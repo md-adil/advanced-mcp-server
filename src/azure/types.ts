@@ -47,3 +47,16 @@ interface _User {
 interface ManagedByTenant {
   tenantId: string;
 }
+
+export interface Project {
+  abbreviation: null;
+  defaultTeamImageUrl: null;
+  description: string;
+  id: string;
+  lastUpdateTime: string;
+  name: string;
+  revision: number;
+  state: string;
+  url: string;
+  visibility: string;
+}

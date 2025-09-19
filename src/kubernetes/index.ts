@@ -1,21 +1,54 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import z from "zod";
-import { kubectlExecute } from "./handler.ts";
+import { helmExecute, kubectlExecute } from "./handler.ts";
 import { wrapAsTextResponse } from "../utils/tools.ts";
 
 export function kubernetesModule(server: McpServer) {
   server.registerTool(
-    "kubernetes_kubectl_execute",
+    "kubectl_execute",
     {
+      description:
+        "Run arbitrary kubectl commands against the Kubernetes cluster",
       inputSchema: {
-        command: z.string().describe("The kubectl subcommand (e.g., 'get pods', 'describe service nginx')"),
-        namespace: z.string().optional().describe("Kubernetes namespace (optional, uses current context default if not specified)"),
-        output_format: z.enum(["json", "yaml", "wide", "name", "table"]).optional().describe("Output format for the command"),
-        timeout: z.number().optional().describe("Command timeout in seconds (default: 30)"),
+        timeout: z
+          .number()
+          .optional()
+          .describe("Optional command timeout in seconds"),
+        args: z
+          .array(z.string())
+          .nonempty()
+          .describe(
+            "Arguments to pass to kubectl (e.g., ['get', 'pods'], ['describe', 'service', 'nginx'])"
+          ),
       },
     },
-    async ({ command, namespace, output_format, timeout }) => {
-      return wrapAsTextResponse(await kubectlExecute({ command, namespace, output_format, timeout }));
+    async ({ args, timeout }) => {
+      return wrapAsTextResponse(
+        await kubectlExecute({ args, timeout: timeout! })
+      );
+    }
+  );
+
+  server.registerTool(
+    "helm_execute",
+    {
+      description:
+        "Run arbitrary Helm CLI commands for managing Helm charts and releases",
+      inputSchema: {
+        timeout: z
+          .number()
+          .optional()
+          .describe("Optional command timeout in seconds"),
+        args: z
+          .array(z.string())
+          .nonempty()
+          .describe(
+            "Arguments to pass to helm (e.g., ['list'], ['install', 'mychart', './chart'])"
+          ),
+      },
+    },
+    async ({ args, timeout }) => {
+      return wrapAsTextResponse(await helmExecute(args, timeout));
     }
   );
 }

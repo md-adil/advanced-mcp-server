@@ -1,17 +1,18 @@
 import { azure } from "./cli.ts";
-import { LoggedInUser, User } from "./types.ts";
+import { LoggedInUser, Project, User } from "./types.ts";
 
 type Result = Record<string, unknown>;
 
-export async function getProjects() {
+export async function getProjects(): Promise<Project[]> {
   const result = await azure("devops", ["project", "list"], { format: "json" });
-  return result;
+  if (!result) throw new Error("Unable to fetch projects");
+  return (result as any).value;
 }
 
 export async function getRepositories(args: {
-  project?: string | undefined;
+  project: string;
 }): Promise<Result> {
-  const azArgs = ["repos", "list"];
+  const azArgs = ["list"];
   if (args.project) {
     azArgs.push("--project", args.project);
   }
@@ -131,14 +132,8 @@ export function getUserStories(args: {
   });
 }
 
-export async function getPipelines(args: {
-  project?: string | undefined;
-}): Promise<Result> {
-  const azArgs = ["pipelines", "list"];
-  if (args.project) {
-    azArgs.push("--project", args.project);
-  }
-
+export async function getPipelines(args: { project: string }): Promise<Result> {
+  const azArgs = ["list", "--project", args.project];
   const result = await azure("pipelines", azArgs, { format: "json" });
 
   return {
@@ -149,20 +144,19 @@ export async function getPipelines(args: {
 }
 
 export async function getBranches(args: {
-  project?: string | undefined;
-  repository?: string | undefined;
+  project: string;
+  repository: string;
 }): Promise<Result> {
-  const azArgs = ["repos", "ref", "list"];
-
-  if (args.project) {
-    azArgs.push("--project", args.project);
-  }
-  if (args.repository) {
-    azArgs.push("--repository", args.repository);
-  }
+  const azArgs = [
+    "ref",
+    "list",
+    "--project",
+    args.project,
+    "--repository",
+    args.repository,
+  ];
 
   const result = await azure("repos", azArgs, { format: "json" });
-
   return {
     branches: result,
     project: args.project,
@@ -172,18 +166,19 @@ export async function getBranches(args: {
 }
 
 export async function getPullRequests(args: {
-  project?: string | undefined;
-  repository?: string | undefined;
+  project: string;
+  repository: string;
   status?: string | undefined;
 }): Promise<Result> {
-  const azArgs = ["repos", "pr", "list"];
+  const azArgs = [
+    "pr",
+    "list",
+    "--project",
+    args.project,
+    "--repository",
+    args.repository,
+  ];
 
-  if (args.project) {
-    azArgs.push("--project", args.project);
-  }
-  if (args.repository) {
-    azArgs.push("--repository", args.repository);
-  }
   if (args.status) {
     azArgs.push("--status", args.status);
   }

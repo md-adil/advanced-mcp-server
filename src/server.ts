@@ -8,8 +8,11 @@ import { dockerModule } from "./docker/index.ts";
 import { httpModule } from "./http/index.ts";
 import { filesystemModule } from "./filesystem/index.ts";
 import { elasticModule } from "./elastic/index.ts";
-import { logger } from "./logger/index.ts";
+import { logger, loggerModule } from "./logger/index.ts";
 import { azureModule } from "./azure/index.ts";
+import { osModule } from "./os/index.ts";
+import { cacheModule } from "./cache/index.ts";
+import { kubernetesModule } from "./kubernetes/index.ts";
 
 export class AdvancedMCPServer {
   private server: Server;
@@ -26,12 +29,16 @@ export class AdvancedMCPServer {
 
   getModules() {
     return [
-      gitModule,
-      dockerModule,
-      httpModule,
-      filesystemModule,
-      elasticModule,
       azureModule,
+      cacheModule,
+      dockerModule,
+      elasticModule,
+      filesystemModule,
+      httpModule,
+      gitModule,
+      kubernetesModule,
+      loggerModule,
+      osModule,
     ];
   }
 
