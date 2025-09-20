@@ -1,4 +1,4 @@
-import { MemoryCache } from "../utils/cache.ts";
+import { MemoryCache } from "../utils/memory-cache.ts";
 
 export const cache = new MemoryCache();
 

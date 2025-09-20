@@ -1,8 +1,10 @@
 import { logger } from "../logger/index.ts";
+import { memorize } from "../utils/cache.ts";
 import { executeCommand } from "../utils/command.ts";
 import { createAzureConfig } from "./config.ts";
+import { LoggedInUser } from "./types.ts";
 
-export async function azure(
+export async function azure<T = unknown>(
   command: string,
   args: string[] = [],
   options: {
@@ -11,6 +13,7 @@ export async function azure(
     organization?: boolean;
   } = {}
 ) {
+  options.format ??= "json";
   const config = createAzureConfig();
   const formatArg = options.format === "json" ? ["--output", "json"] : [];
   const orgArgs: string[] = [];
@@ -45,5 +48,13 @@ export async function azure(
       // If JSON parsing fails, return raw stdout
     }
   }
-  return data;
+  return data as T;
 }
+
+export const getCurrentUser = memorize(async function getCurrentUser() {
+  const result = await azure<LoggedInUser>("account", ["show"], {
+    format: "json",
+    organization: false,
+  });
+  return { id: result.id, email: result.user.name, type: result.user.type };
+}, 60 * 60 * 12);

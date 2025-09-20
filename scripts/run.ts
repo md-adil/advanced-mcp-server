@@ -1,9 +1,10 @@
-import { makeRequest } from "../src/elastic/handler.ts";
+import { sendEmail } from "../src/comm/handler.ts";
 
 console.log(
-  await makeRequest("https://localhost:9200/_cluster/settings", {
-    host: "https://localhost:9200",
-    username: "elastic",
-    password: "967iMgKSU7U05k5PhOP76FQ3",
+  await sendEmail({
+    to: ["md.adil@bfhl.in"],
+    subject: "Hello",
+    body: "Hey there",
+    isHtml: false,
   })
 );

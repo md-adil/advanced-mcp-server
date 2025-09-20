@@ -6,8 +6,6 @@ import {
   getRepositories,
   getUsers,
   getWorkItems,
-  getTasks,
-  getUserStories,
   getPipelines,
   getBranches,
   getPullRequests,
@@ -57,12 +55,9 @@ export function azureModule(server: McpServer) {
     "azure_users",
     {
       description: "Get list of Azure DevOps users",
-      inputSchema: {
-        project: z.string().optional().describe("Project name or ID"),
-      },
     },
-    async (args) => {
-      return wrapAsTextResponse(await getUsers(args));
+    async () => {
+      return wrapAsTextResponse(await getUsers());
     }
   );
 
@@ -82,46 +77,13 @@ export function azureModule(server: McpServer) {
           .describe("Work item state (e.g., New, Active, Closed)"),
         assigned_to: z
           .string()
+          .email("Must be a valid user email")
           .optional()
-          .describe("Assigned to user email or name"),
+          .describe("Email of the user assigned to the work item"),
       },
     },
     async (args) => {
       return wrapAsTextResponse(await getWorkItems(args));
-    }
-  );
-
-  server.registerTool(
-    "azure_tasks",
-    {
-      description: "Get list of Azure DevOps tasks",
-      inputSchema: {
-        project: z.string().optional().describe("Project name or ID"),
-        assigned_to: z
-          .string()
-          .optional()
-          .describe("Assigned to user email or name"),
-      },
-    },
-    async (args) => {
-      return wrapAsTextResponse(await getTasks(args));
-    }
-  );
-
-  server.registerTool(
-    "azure_user_stories",
-    {
-      description: "Get list of Azure DevOps user stories",
-      inputSchema: {
-        project: z.string().optional().describe("Project name or ID"),
-        state: z
-          .string()
-          .optional()
-          .describe("User story state (e.g., New, Active, Closed)"),
-      },
-    },
-    async (args) => {
-      return wrapAsTextResponse(await getUserStories(args));
     }
   );
 
@@ -215,7 +177,7 @@ export function azureModule(server: McpServer) {
     },
     async ({ href }) => {
       try {
-        const users = await getUsers({});
+        const users = await getUsers();
         return {
           contents: [
             {
@@ -236,28 +198,6 @@ export function azureModule(server: McpServer) {
           ],
         };
       }
-    }
-  );
-
-  server.registerResource(
-    "azure-recent-work-items",
-    "azure://work-items/recent",
-    {
-      name: "Recent Azure Work Items",
-      description: "Recently created work items from Azure Boards",
-      mimeType: "application/json",
-    },
-    async ({ href }) => {
-      const workItems = await getWorkItems({});
-      return {
-        contents: [
-          {
-            uri: href,
-            mimeType: "application/json",
-            text: JSON.stringify(workItems, null, 2),
-          },
-        ],
-      };
     }
   );
 }

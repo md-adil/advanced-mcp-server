@@ -8,7 +8,11 @@
       "Bash(deno task:*)",
       "Bash(mkdir:*)",
       "Bash(timeout 5s deno run:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(deno lint:*)",
+      "Bash(deno install:*)",
+      "Bash(az account:*)",
+      "Bash(az:*)"
     ],
     "deny": [],
     "ask": []

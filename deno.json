@@ -17,8 +17,11 @@
     "@std/encoding": "jsr:@std/encoding@^1.0.10",
     "@std/testing": "jsr:@std/testing@^1.0.0",
     "axios": "npm:axios@^1.12.2",
+    "keyv": "npm:keyv@^5.0.1",
+    "@keyv/sqlite": "npm:@keyv/sqlite@^4.0.1",
     "zod": "npm:zod@3.25.76"
   },
+  "nodeModulesDir": "auto",
   "compilerOptions": {
     "strict": true,
     "allowUnreachableCode": false,

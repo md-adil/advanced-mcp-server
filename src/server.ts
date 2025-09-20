@@ -13,6 +13,7 @@ import { azureModule } from "./azure/index.ts";
 import { osModule } from "./os/index.ts";
 import { cacheModule } from "./cache/index.ts";
 import { kubernetesModule } from "./kubernetes/index.ts";
+import { commModule } from "./comm/index.ts";
 
 export class AdvancedMCPServer {
   private server: Server;
@@ -31,6 +32,7 @@ export class AdvancedMCPServer {
     return [
       azureModule,
       cacheModule,
+      commModule,
       dockerModule,
       elasticModule,
       filesystemModule,

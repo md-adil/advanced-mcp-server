@@ -7,7 +7,7 @@ export interface AzureConfig {
 export function createAzureConfig(): AzureConfig {
   const organization =
     Deno.env.get("AZURE_DEVOPS_ORGANIZATION") ?? "https://dev.azure.com/BFHL";
-  const project = Deno.env.get("AZURE_DEVOPS_PROJECT");
+  const project = Deno.env.get("AZURE_DEVOPS_PROJECT") ?? "eBH";
   const pat = Deno.env.get("AZURE_DEVOPS_PAT");
 
   return {
